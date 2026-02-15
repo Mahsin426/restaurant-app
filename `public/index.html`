@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ভাত ঘর হোটেল - দৈনিক হিসাব</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <style>
+        body { transition: background-color 0.3s, color 0.3s; }
+        .dark { background-color: #111827; color: white; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-900">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+
+        function App() {
+            const [income, setIncome] = useState([]);
+            const [expenses, setExpenses] = useState([]);
+            const [darkMode, setDarkMode] = useState(false);
+
+            // Load data from LocalStorage
+            useEffect(() => {
+                const savedIncome = JSON.parse(localStorage.getItem('income') || '[]');
+                const savedExpenses = JSON.parse(localStorage.getItem('expenses') || '[]');
+                const savedMode = JSON.parse(localStorage.getItem('darkMode') || 'false');
+                setIncome(savedIncome);
+                setExpenses(savedExpenses);
+                setDarkMode(savedMode);
+            }, []);
+
+            // Save data
+            useEffect(() => {
+                localStorage.setItem('income', JSON.stringify(income));
+                localStorage.setItem('expenses', JSON.stringify(expenses));
+                localStorage.setItem('darkMode', JSON.stringify(darkMode));
+                
+                if (darkMode) document.documentElement.classList.add('dark');
+                else document.documentElement.classList.remove('dark');
+            }, [income, expenses, darkMode]);
+
+            const totalIncome = income.reduce((a, b) => a + b, 0);
+            const totalExpenses = expenses.reduce((a, b) => a + b, 0);
+            const netProfit = totalIncome - totalExpenses;
+
+            const handleIncome = (e) => {
+                if (e.key === 'Enter' && e.target.value) {
+                    setIncome([...income, Number(e.target.value)]);
+                    e.target.value = '';
+                }
+            };
+
+            const handleExpense = (e) => {
+                if (e.key === 'Enter' && e.target.value) {
+                    setExpenses([...expenses, Number(e.target.value)]);
+                    e.target.value = '';
+                }
+            };
+
+            return (
+                <div className={`min-h-screen p-4 md:p-8 ${darkMode ? 'dark' : ''}`}>
+                    {/* Header */}
+                    <header className="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700">
+                        <div className="text-center md:text-left">
+                            <h1 className="text-2xl md:text-3xl font-bold text-green-700 dark:text-green-400">ভাত ঘর হোটেল রেস্টুরেন্ট এন্ড মিষ্টান্ন</h1>
+                            <p className="text-sm text-gray-500 dark:text-gray-400 font-medium">স্বত্বাধিকারী: রহমান সিং | মাইজদী কোর্ট, নোয়াখালী</p>
+                        </div>
+                        <button onClick={() => setDarkMode(!darkMode)} className="px-4 py-2 rounded-full border text-sm font-medium bg-gray-100 dark:bg-gray-700 dark:text-white">
+                            {darkMode ? "☀️ লাইট মোড" : "🌙 ডার্ক মোড"}
+                        </button>
+                    </header>
+
+                    {/* Summary Cards */}
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                        <div className="p-6 rounded-2xl bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 text-center">
+                            <h2 className="text-xs font-bold uppercase text-green-800 dark:text-green-400">মোট আয়</h2>
+                            <p className="text-3xl font-extrabold text-green-700 dark:text-green-300">৳ {totalIncome.toLocaleString()}</p>
+                        </div>
+                        <div className="p-6 rounded-2xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-center">
+                            <h2 className="text-xs font-bold uppercase text-red-800 dark:text-red-400">মোট ব্যয়</h2>
+                            <p className="text-3xl font-extrabold text-red-700 dark:text-red-300">৳ {totalExpenses.toLocaleString()}</p>
+                        </div>
+                        <div className={`p-6 rounded-2xl border text-center ${netProfit >= 0 ? 'bg-blue-50 dark:bg-blue-900/20 border-blue-200' : 'bg-orange-50 border-orange-200'}`}>
+                            <h2 className="text-xs font-bold uppercase text-gray-800 dark:text-gray-300">নিট লাভ</h2>
+                            <p className={`text-3xl font-extrabold ${netProfit >= 0 ? 'text-blue-700' : 'text-orange-700'}`}>৳ {netProfit.toLocaleString()}</p>
+                        </div>
+                    </div>
+
+                    {/* Inputs */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border-l-4 border-green-500">
+                            <label className="block text-sm font-bold text-green-600 mb-2">টাকা জমা দিন (Income)</label>
+                            <input type="number" placeholder="Enter চাপুন..." className="w-full p-3 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-green-500" onKeyDown={handleIncome} />
+                        </div>
+                        <div className="p-6 bg-white dark:bg-gray-800 rounded-2xl shadow-sm border-l-4 border-red-500">
+                            <label className="block text-sm font-bold text-red-600 mb-2">টাকা খরচ করুন (Expense)</label>
+                            <input type="number" placeholder="Enter চাপুন..." className="w-full p-3 border rounded-lg dark:bg-gray-900 dark:border-gray-700 dark:text-white outline-none focus:ring-2 focus:ring-red-500" onKeyDown={handleExpense} />
+                        </div>
+                    </div>
+
+                    {/* History */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm h-64 overflow-y-auto p-4 border dark:border-gray-700">
+                            <h3 className="font-bold text-green-600 mb-2 sticky top-0 bg-white dark:bg-gray-800 pb-2">আয়ের তালিকা</h3>
+                            {income.map((v, i) => <div key={i} className="flex justify-between border-b py-2 text-sm dark:text-gray-300"><span>#{i+1}</span><span className="font-bold text-green-600">+৳{v}</span></div>)}
+                        </div>
+                        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm h-64 overflow-y-auto p-4 border dark:border-gray-700">
+                            <h3 className="font-bold text-red-600 mb-2 sticky top-0 bg-white dark:bg-gray-800 pb-2">ব্যয়ের তালিকা</h3>
+                            {expenses.map((v, i) => <div key={i} className="flex justify-between border-b py-2 text-sm dark:text-gray-300"><span>#{i+1}</span><span className="font-bold text-red-600">-৳{v}</span></div>)}
+                        </div>
+                    </div>
+
+                    {/* Footer */}
+                    <footer className="mt-8 text-center text-sm text-gray-500 dark:text-gray-400 py-6 border-t dark:border-gray-700">
+                        <p>📍 এম রহমান প্লাজা, পুরাতন বাস স্ট্যান্ড, মাইজদী কোর্ট, নোয়াখালী</p>
+                        <p>📞 ০১৩৩৬-৬১৩৪৮১ | ✉️ vatghorhotelonline@gmail.com</p>
+                        <p className="mt-2 text-xs">© {new Date().getFullYear()} ভাত ঘর হোটেল</p>
+                    </footer>
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+    </script>
+</body>
+</html>
